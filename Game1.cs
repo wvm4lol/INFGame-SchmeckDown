@@ -65,8 +65,11 @@ namespace INFGame
             player1.gamePadY = player1.gamePadState.ThumbSticks.Left.Y;
             player2.gamePadX = player2.gamePadState.ThumbSticks.Left.X;
             player2.gamePadY = player2.gamePadState.ThumbSticks.Left.Y;
+            //checking if player is on floor
             player1.onFloor = player1.position.Y <= 0;
             player2.onFloor = player2.position.Y <= 0;
+
+            //changing player speed value if player presses A while on floor (used in player collision method)
             if (player1.onFloor)
             {
                 if (player1.gamePadState.Buttons.A == ButtonState.Pressed)
@@ -97,9 +100,11 @@ namespace INFGame
             {
                 player2.speed = player2.speed - 0.05f;
             }
+
             player1.position = PlayerCollision(player1.position, player1.speed, player1.gamePadX, player1.onFloor, arenaSize, speedMultiplier);
             player2.position = PlayerCollision(player2.position, player2.speed, player2.gamePadX, player2.onFloor, arenaSize, speedMultiplier);
 
+            //translatting player posttition to matrix for rendering
             player1.matrix = Matrix.CreateTranslation(player1.position);
             player2.matrix = Matrix.CreateTranslation(player2.position);
 
@@ -111,14 +116,14 @@ namespace INFGame
         {
 
             GraphicsDevice.Clear(Color.CornflowerBlue);
+            //rendering using method
             DrawModel(player1.model, player1.matrix, view, projection);
             DrawModel(player2.model, player2.matrix, view, projection);
+            //drawing position, speed and onFloor bool to screen
             spriteBatch.Begin();
             spriteBatch.DrawString(font, player1.position.ToString(), new Vector2(100, 100), Color.Black);
             spriteBatch.DrawString(font, player1.speed.ToString(), new Vector2(100, 120), Color.Black);
             spriteBatch.DrawString(font, player1.onFloor.ToString(), new Vector2(100, 140), Color.Black);
-
-
             spriteBatch.End();
 
 
@@ -142,6 +147,7 @@ namespace INFGame
                 mesh.Draw();
             }
         }
+        //method that checks player collision and updates position
         private Vector3 PlayerCollision(Vector3 playerPos, float playerSpeed, float gamePadX, bool onFloor, Vector3 arena, float speed)
         {
             playerPos += new Vector3(gamePadX * speed, 0, 0);
@@ -164,6 +170,7 @@ namespace INFGame
             return playerPos;
         }
     }
+    //player class (2 instances created a start), holds player specific info
     public class Player
     {
         public Vector3 position;
