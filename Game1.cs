@@ -7,27 +7,18 @@ namespace INFGame
     public class Game1 : Game
     {
         //variable declaring
-        //player one variables
-        private Vector3 playerOnePos;
-        private Matrix playerOne;
-        private Model modelOne;
-        private GamePadState gamePadOne;
-        private float pOneGPadX;
-        private float pOneGPadY;
-        //player two variables
-        private Vector3 playerTwoPos;
-        private Matrix playerTwo;
-        private Model modelTwo;
-        private GamePadState gamePadTwo;
-        private float pTwoGPadX;
-        private float pTwoGPadY;
         //camera variables
         private Matrix view;
         private Matrix projection;
         //other variables
-        private float playerSpeed;
+        private float speedMultiplier;
         private GraphicsDeviceManager graphics;
-        private SpriteBatch spritebatch;
+        private SpriteBatch spriteBatch;
+        private Vector3 arenaSize;
+        private SpriteFont font;
+        Player player1 = new Player();
+        Player player2 = new Player();
+        private Model scene;
 
 
         public Game1()
@@ -44,20 +35,21 @@ namespace INFGame
         protected override void Initialize()
         {
             base.Initialize();
-            spritebatch = new SpriteBatch(GraphicsDevice);
-            playerOnePos = new Vector3(-5, 0, 0);
-            playerTwoPos = new Vector3(5, 0, 0);
+            spriteBatch = new SpriteBatch(GraphicsDevice);
+            player1.position = new Vector3(-5, 0, 0);
+            player2.position = new Vector3(5, 0, 0);
             view = Matrix.CreateLookAt(new Vector3(0, 5, 20), new Vector3(0, 5, 0), Vector3.UnitY);
             projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(60), 1920f / 1080f, 0.1f, 100f);
-            playerSpeed = 0.4f;
+            speedMultiplier = 0.4f;
+            arenaSize = new Vector3(20, 0, 0);
         }
 
         //load assets
         protected override void LoadContent()
         {
-            modelOne = Content.Load<Model>("TestCube");
-            modelTwo = Content.Load<Model>("TestCube");
-
+            player1.model = Content.Load<Model>("TestCube");
+            player2.model = Content.Load<Model>("TestCube");
+            font = Content.Load<SpriteFont>("File");
 
         }
 
@@ -67,12 +59,50 @@ namespace INFGame
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
             //saving controller state
-            gamePadOne = GamePad.GetState(PlayerIndex.One);
-            gamePadTwo = GamePad.GetState(PlayerIndex.Two);
-            playerOnePos += new Vector3(gamePadOne.ThumbSticks.Left.X * playerSpeed, gamePadOne.ThumbSticks.Left.Y * playerSpeed, 0);
-            playerOne = Matrix.CreateTranslation(playerOnePos);
-            playerTwoPos += new Vector3(gamePadTwo.ThumbSticks.Left.X * playerSpeed, gamePadTwo.ThumbSticks.Left.Y * playerSpeed, 0);
-            playerTwo = Matrix.CreateTranslation(playerTwoPos);
+            player1.gamePadState = GamePad.GetState(PlayerIndex.One);
+            player2.gamePadState = GamePad.GetState(PlayerIndex.Two);
+            player1.gamePadX = player1.gamePadState.ThumbSticks.Left.X;
+            player1.gamePadY = player1.gamePadState.ThumbSticks.Left.Y;
+            player2.gamePadX = player2.gamePadState.ThumbSticks.Left.X;
+            player2.gamePadY = player2.gamePadState.ThumbSticks.Left.Y;
+            player1.onFloor = player1.position.Y <= 0;
+            player2.onFloor = player2.position.Y <= 0;
+            if (player1.onFloor)
+            {
+                if (player1.gamePadState.Buttons.A == ButtonState.Pressed)
+                {
+                    player1.speed = 1;
+
+                } else
+                {
+                    player1.speed = 0;
+                    player1.position.Y = 0;
+                }
+            } else
+            {
+                player1.speed = player1.speed - 0.05f;
+            }
+            if (player2.onFloor)
+            {
+                if (player2.gamePadState.Buttons.A == ButtonState.Pressed)
+                {
+                    player2.speed = 1;
+
+                } else
+                {
+                    player2.speed = 0;
+                    player2.position.Y = 0;
+                }
+            } else
+            {
+                player2.speed = player2.speed - 0.05f;
+            }
+            player1.position = PlayerCollision(player1.position, player1.speed, player1.gamePadX, player1.onFloor, arenaSize, speedMultiplier);
+            player2.position = PlayerCollision(player2.position, player2.speed, player2.gamePadX, player2.onFloor, arenaSize, speedMultiplier);
+
+            player1.matrix = Matrix.CreateTranslation(player1.position);
+            player2.matrix = Matrix.CreateTranslation(player2.position);
+
             base.Update(gameTime);
         }
 
@@ -81,13 +111,20 @@ namespace INFGame
         {
 
             GraphicsDevice.Clear(Color.CornflowerBlue);
-            DrawModel(modelOne, playerOne, view, projection);
-            DrawModel(modelTwo, playerTwo, view, projection);
+            DrawModel(player1.model, player1.matrix, view, projection);
+            DrawModel(player2.model, player2.matrix, view, projection);
+            spriteBatch.Begin();
+            spriteBatch.DrawString(font, player1.position.ToString(), new Vector2(100, 100), Color.Black);
+            spriteBatch.DrawString(font, player1.speed.ToString(), new Vector2(100, 120), Color.Black);
+            spriteBatch.DrawString(font, player1.onFloor.ToString(), new Vector2(100, 140), Color.Black);
 
+
+            spriteBatch.End();
 
 
             base.Draw(gameTime);
         }
+
 
         //method to render a specific model
         private void DrawModel(Model model, Matrix world, Matrix view, Matrix projection)
@@ -105,5 +142,39 @@ namespace INFGame
                 mesh.Draw();
             }
         }
+        private Vector3 PlayerCollision(Vector3 playerPos, float playerSpeed, float gamePadX, bool onFloor, Vector3 arena, float speed)
+        {
+            playerPos += new Vector3(gamePadX * speed, 0, 0);
+            //player movement and collision checking
+            if (gamePadX > 0 && playerPos.X > 0)
+            {
+                if (playerPos.X > arena.X)
+                {
+                    playerPos += new Vector3(arena.X - playerPos.X, 0, 0);
+                }
+            }
+            else if (gamePadX < 0 && playerPos.X < 0)
+            {
+                if (playerPos.X < -arena.X)
+                {
+                    playerPos += new Vector3(-arena.X - playerPos.X, 0, 0);
+                }
+            }
+            playerPos += new Vector3(0, playerSpeed, 0);
+            return playerPos;
+        }
+    }
+    public class Player
+    {
+        public Vector3 position;
+        public float health;
+        public Matrix matrix;
+        public bool onFloor;
+        public float speed = 0;
+        public Model model;
+        public GamePadState gamePadState;
+        public float gamePadX;
+        public float gamePadY;
+
     }
 }
