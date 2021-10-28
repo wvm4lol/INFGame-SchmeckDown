@@ -74,35 +74,37 @@ namespace INFGame
             {
                 if (player1.gamePadState.Buttons.A == ButtonState.Pressed)
                 {
-                    player1.speed = 1;
+                    player1.speedY = 1;
 
                 } else
                 {
-                    player1.speed = 0;
+                    player1.speedY = 0;
                     player1.position.Y = 0;
                 }
             } else
             {
-                player1.speed = player1.speed - 0.05f;
+                player1.speedY = player1.speedY - 0.05f;
             }
             if (player2.onFloor)
             {
                 if (player2.gamePadState.Buttons.A == ButtonState.Pressed)
                 {
-                    player2.speed = 1;
+                    player2.speedY = 1;
 
                 } else
                 {
-                    player2.speed = 0;
+                    player2.speedY = 0;
                     player2.position.Y = 0;
                 }
             } else
             {
-                player2.speed = player2.speed - 0.05f;
+                player2.speedY = player2.speedY - 0.05f;
             }
 
-            player1.position = PlayerCollision(player1.position, player1.speed, player1.gamePadX, player1.onFloor, arenaSize, speedMultiplier);
-            player2.position = PlayerCollision(player2.position, player2.speed, player2.gamePadX, player2.onFloor, arenaSize, speedMultiplier);
+            player1.speedX = PlayerSpeedX(player1.gamePadX, player1.speedX);
+            player1.position = PlayerCollision(player1.position, player1.speedY, player1.speedX, arenaSize, player1.gamePadX);
+            player2.speedX = PlayerSpeedX(player2.gamePadX, player2.speedX);
+            player2.position = PlayerCollision(player2.position, player2.speedY, player2.speedX, arenaSize, player2.gamePadX);
 
             //translatting player posttition to matrix for rendering
             player1.matrix = Matrix.CreateTranslation(player1.position);
@@ -122,8 +124,9 @@ namespace INFGame
             //drawing position, speed and onFloor bool to screen
             spriteBatch.Begin();
             spriteBatch.DrawString(font, player1.position.ToString(), new Vector2(100, 100), Color.Black);
-            spriteBatch.DrawString(font, player1.speed.ToString(), new Vector2(100, 120), Color.Black);
-            spriteBatch.DrawString(font, player1.onFloor.ToString(), new Vector2(100, 140), Color.Black);
+            spriteBatch.DrawString(font, player1.speedY.ToString(), new Vector2(100, 120), Color.Black);
+            spriteBatch.DrawString(font, player1.speedX.ToString(), new Vector2(100, 140), Color.Black);
+            spriteBatch.DrawString(font, player1.onFloor.ToString(), new Vector2(100, 160), Color.Black);
             spriteBatch.End();
 
 
@@ -148,26 +151,70 @@ namespace INFGame
             }
         }
         //method that checks player collision and updates position
-        private Vector3 PlayerCollision(Vector3 playerPos, float playerSpeed, float gamePadX, bool onFloor, Vector3 arena, float speed)
+        private Vector3 PlayerCollision(Vector3 playerPos, float playerSpeedY, float playerSpeedX, Vector3 arena, float gamePadX)
         {
-            playerPos += new Vector3(gamePadX * speed, 0, 0);
+
+            playerPos += new Vector3(playerSpeedX, 0, 0);
             //player movement and collision checking
-            if (gamePadX > 0 && playerPos.X > 0)
+            if (playerSpeedX > 0 && playerPos.X > 0)
             {
                 if (playerPos.X > arena.X)
                 {
                     playerPos += new Vector3(arena.X - playerPos.X, 0, 0);
                 }
             }
-            else if (gamePadX < 0 && playerPos.X < 0)
+            else if (playerSpeedX < 0 && playerPos.X < 0)
             {
                 if (playerPos.X < -arena.X)
                 {
                     playerPos += new Vector3(-arena.X - playerPos.X, 0, 0);
                 }
             }
-            playerPos += new Vector3(0, playerSpeed, 0);
+            playerPos += new Vector3(0, playerSpeedY, 0);
             return playerPos;
+        }
+
+        private float PlayerSpeedX(float gamePadX, float playerSpeed)
+        {
+            //playere max speed, player acceleration speed and player deacceleration speed
+            float speedLim = 0.5f;
+            float accelMultiplier = 0.2f;
+            float decelMultiplier = 0.05f;
+            //if there is input, update speed tto match it
+            if (gamePadX != 0)
+            {
+                playerSpeed = playerSpeed + accelMultiplier * gamePadX;
+            } else
+            {
+                //if not, slow down player using decel var
+                if (playerSpeed > 0)
+                {
+                    //if it slows down too far, set speed to 0
+                    if (playerSpeed - decelMultiplier < 0)
+                    {
+                        playerSpeed = 0;
+                    }
+                    playerSpeed = playerSpeed - decelMultiplier;
+                }
+                else if (playerSpeed < 0)
+                {
+                    if (playerSpeed + decelMultiplier > 0)
+                    {
+                        playerSpeed = 0;
+                    }
+                    playerSpeed = playerSpeed + decelMultiplier;
+                }
+            }
+
+            //if the speed is over the limit set the speed to the speed limit
+            if (playerSpeed > speedLim)
+            {
+                playerSpeed = speedLim;
+            } else if (playerSpeed < -speedLim)
+            {
+                playerSpeed = -speedLim;
+            }
+            return playerSpeed;
         }
     }
     //player class (2 instances created a start), holds player specific info
@@ -177,7 +224,8 @@ namespace INFGame
         public float health;
         public Matrix matrix;
         public bool onFloor;
-        public float speed = 0;
+        public float speedY = 0;
+        public float speedX = 0;
         public Model model;
         public GamePadState gamePadState;
         public float gamePadX;
