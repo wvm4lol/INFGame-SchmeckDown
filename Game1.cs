@@ -101,10 +101,12 @@ namespace INFGame
                 player2.speedY = player2.speedY - 0.05f;
             }
 
-            player1.speedX = PlayerSpeedX(player1.gamePadX, player1.speedX);
-            player1.position = PlayerCollision(player1.position, player1.speedY, player1.speedX, arenaSize, player1.gamePadX);
-            player2.speedX = PlayerSpeedX(player2.gamePadX, player2.speedX);
+            player1.PlayerSpeedX(); //method to calculate player speed
+            player1.position = PlayerCollision(player1.position, player1.speedY, player1.speedX, arenaSize, player1.gamePadX); //method to update player position
+            player1.SetPlayerHitBox(); //Object method that sets 2 vectors for the 2 corners of the hitbox
+            player2.PlayerSpeedX();
             player2.position = PlayerCollision(player2.position, player2.speedY, player2.speedX, arenaSize, player2.gamePadX);
+            player2.SetPlayerHitBox(); 
 
             //translatting player posttition to matrix for rendering
             player1.matrix = Matrix.CreateTranslation(player1.position);
@@ -150,6 +152,7 @@ namespace INFGame
                 mesh.Draw();
             }
         }
+
         //method that checks player collision and updates position
         private Vector3 PlayerCollision(Vector3 playerPos, float playerSpeedY, float playerSpeedX, Vector3 arena, float gamePadX)
         {
@@ -174,62 +177,7 @@ namespace INFGame
             return playerPos;
         }
 
-        private float PlayerSpeedX(float gamePadX, float playerSpeed)
-        {
-            //playere max speed, player acceleration speed and player deacceleration speed
-            float speedLim = 0.5f;
-            float accelMultiplier = 0.2f;
-            float decelMultiplier = 0.05f;
-            //if there is input, update speed tto match it
-            if (gamePadX != 0)
-            {
-                playerSpeed = playerSpeed + accelMultiplier * gamePadX;
-            } else
-            {
-                //if not, slow down player using decel var
-                if (playerSpeed > 0)
-                {
-                    //if it slows down too far, set speed to 0
-                    if (playerSpeed - decelMultiplier < 0)
-                    {
-                        playerSpeed = 0;
-                    }
-                    playerSpeed = playerSpeed - decelMultiplier;
-                }
-                else if (playerSpeed < 0)
-                {
-                    if (playerSpeed + decelMultiplier > 0)
-                    {
-                        playerSpeed = 0;
-                    }
-                    playerSpeed = playerSpeed + decelMultiplier;
-                }
-            }
-
-            //if the speed is over the limit set the speed to the speed limit
-            if (playerSpeed > speedLim)
-            {
-                playerSpeed = speedLim;
-            } else if (playerSpeed < -speedLim)
-            {
-                playerSpeed = -speedLim;
-            }
-            return playerSpeed;
-        }
-    }
-    //player class (2 instances created a start), holds player specific info
-    public class Player
-    {
-        public Vector3 position;
-        public float health;
-        public Matrix matrix;
-        public bool onFloor;
-        public float speedY = 0;
-        public float speedX = 0;
-        public Model model;
-        public GamePadState gamePadState;
-        public float gamePadX;
-        public float gamePadY;
 
     }
+
 }
