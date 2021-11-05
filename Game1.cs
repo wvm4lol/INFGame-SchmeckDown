@@ -65,50 +65,19 @@ namespace INFGame
             player1.gamePadY = player1.gamePadState.ThumbSticks.Left.Y;
             player2.gamePadX = player2.gamePadState.ThumbSticks.Left.X;
             player2.gamePadY = player2.gamePadState.ThumbSticks.Left.Y;
-            //checking if player is on floor
-            player1.onFloor = player1.position.Y <= 0;
-            player2.onFloor = player2.position.Y <= 0;
+            player1.OnFloor();
+            player2.OnFloor(); 
 
-            //changing player speed value if player presses A while on floor (used in player collision method)
-            if (player1.onFloor)
-            {
-                if (player1.gamePadState.Buttons.A == ButtonState.Pressed)
-                {
-                    player1.speedY = 1;
 
-                } else
-                {
-                    player1.speedY = 0;
-                    player1.position.Y = 0;
-                }
-            } else
-            {
-                player1.speedY = player1.speedY - 0.05f;
-            }
-            if (player2.onFloor)
-            {
-                if (player2.gamePadState.Buttons.A == ButtonState.Pressed)
-                {
-                    player2.speedY = 1;
-
-                } else
-                {
-                    player2.speedY = 0;
-                    player2.position.Y = 0;
-                }
-            } else
-            {
-                player2.speedY = player2.speedY - 0.05f;
-            }
 
             player1.PlayerSpeedX(); //method to calculate player speed
-            player1.position = PlayerCollision(player1.position, player1.speedY, player1.speedX, arenaSize, player1.gamePadX); //method to update player position
+            player1.PlayerCollision(arenaSize); //method to update player position
             player1.SetPlayerHitBox(); //Object method that sets 2 vectors for the 2 corners of the hitbox
             player2.PlayerSpeedX();
-            player2.position = PlayerCollision(player2.position, player2.speedY, player2.speedX, arenaSize, player2.gamePadX);
+            player2.PlayerCollision(arenaSize);
             player2.SetPlayerHitBox(); 
 
-            //translatting player posttition to matrix for rendering
+            //translating player position to matrix for rendering
             player1.matrix = Matrix.CreateTranslation(player1.position);
             player2.matrix = Matrix.CreateTranslation(player2.position);
 
@@ -152,32 +121,6 @@ namespace INFGame
                 mesh.Draw();
             }
         }
-
-        //method that checks player collision and updates position
-        private Vector3 PlayerCollision(Vector3 playerPos, float playerSpeedY, float playerSpeedX, Vector3 arena, float gamePadX)
-        {
-
-            playerPos += new Vector3(playerSpeedX, 0, 0);
-            //player movement and collision checking
-            if (playerSpeedX > 0 && playerPos.X > 0)
-            {
-                if (playerPos.X > arena.X)
-                {
-                    playerPos += new Vector3(arena.X - playerPos.X, 0, 0);
-                }
-            }
-            else if (playerSpeedX < 0 && playerPos.X < 0)
-            {
-                if (playerPos.X < -arena.X)
-                {
-                    playerPos += new Vector3(-arena.X - playerPos.X, 0, 0);
-                }
-            }
-            playerPos += new Vector3(0, playerSpeedY, 0);
-            return playerPos;
-        }
-
-
     }
 
 }
