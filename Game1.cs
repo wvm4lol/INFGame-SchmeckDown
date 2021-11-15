@@ -20,6 +20,7 @@ namespace INFGame
         Attack lightAttack = new Attack();
         Attack heavyAttack = new Attack();
         Attack[] attackList;
+        Model[] cubes;
 
 
         public Game1()
@@ -42,7 +43,10 @@ namespace INFGame
             view = Matrix.CreateLookAt(new Vector3(0, 5, 20), new Vector3(0, 5, 0), Vector3.UnitY);
             projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(60), 1920f / 1080f, 0.1f, 100f);
             arenaSize = new Vector3(20, 0, 0);
-
+            player1.gamePadState = GamePad.GetState(PlayerIndex.One);
+            player2.gamePadState = GamePad.GetState(PlayerIndex.Two);
+            player1.facing = 1;
+            player2.facing = -1;
 
         }
 
@@ -67,25 +71,26 @@ namespace INFGame
                 Exit();
             player1.hit = false;
             //saving controller state
+            player1.oldGamePadState = player1.gamePadState;
+            player2.oldGamePadState = player2.gamePadState;
             player1.gamePadState = GamePad.GetState(PlayerIndex.One);
             player2.gamePadState = GamePad.GetState(PlayerIndex.Two);
             player1.gamePadX = player1.gamePadState.ThumbSticks.Left.X;
             player1.gamePadY = player1.gamePadState.ThumbSticks.Left.Y;
             player2.gamePadX = player2.gamePadState.ThumbSticks.Left.X;
             player2.gamePadY = player2.gamePadState.ThumbSticks.Left.Y;
+
             player1.Jump();
             player2.Jump();
-
-
-
-            player1.PlayerSpeedX(); //method to calculate player speed
-            player1.PlayerCollision(arenaSize); //method to update player position
-            player1.SetPlayerHitBox(); //Object method that sets 2 vectors for the 2 corners of the hitbox
+            player1.PlayerSpeedX();
             player2.PlayerSpeedX();
-            player2.PlayerCollision(arenaSize);
+            player1.SetPlayerHitBox();
             player2.SetPlayerHitBox();
             player1.Attack(player2);
             player2.Attack(player1);
+            player1.PlayerCollision(arenaSize);
+            player2.PlayerCollision(arenaSize);
+
 
 
             //translating player position to matrix for rendering
@@ -103,6 +108,10 @@ namespace INFGame
             //rendering using method
             DrawModel(player1.model, player1.matrix, view, projection);
             DrawModel(player2.model, player2.matrix, view, projection);
+            DrawModel(player1.model, player1.hitbBR, view, projection);
+            DrawModel(player1.model, player1.hitbTL, view, projection);
+            DrawModel(player1.model, player1.atthitbBR, view, projection);
+            DrawModel(player1.model, player1.atthitbTL, view, projection);
             //drawing position, speed and onFloor bool to screen
             spriteBatch.Begin();
             spriteBatch.DrawString(font, player1.position.ToString(), new Vector2(100, 100), Color.Black);
