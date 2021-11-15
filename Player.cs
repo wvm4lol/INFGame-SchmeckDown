@@ -11,7 +11,7 @@ namespace INFGame
     public class Player
     {
         public Vector3 position;
-        public float health;
+        public int health = 1000;
         public Matrix matrix;
         public bool onFloor;
         public float speedY = 0;
@@ -20,21 +20,50 @@ namespace INFGame
         public GamePadState gamePadState;
         public float gamePadX;
         public float gamePadY;
-        public Vector2 hitBoxTL;
-        public Vector2 hitBoxBR;
-        public float hitBoxWidth = 1.5f;
-        public float hitBoxheight = 2.5f;
-        public Attack currentAttack;
+        public Vector3 hitboxTL;
+        public Vector3 hitboxBR;
+        public float hitboxWidth = 1.5f;
+        public float hitboxheight = 2.5f;
+        public Attack currAttack = new Attack();
+        public Attack[] attacks;
+        public bool hit;
 
+        //set player hitbox relative to playerpos
         public void SetPlayerHitBox()
         {
-            hitBoxTL = new Vector2(position.X - hitBoxWidth / 2, position.Y + hitBoxheight);
-            hitBoxBR = new Vector2(position.X + hitBoxWidth / 2, position.Y);
+            hitboxTL = new Vector3(position.X - hitboxWidth / 2, position.Y + hitboxheight, 0);
+            hitboxBR = new Vector3(position.X + hitboxWidth / 2, position.Y, 0);
         }
 
-        public void CalcAttack()
+        //checks if player is attacking, if it hits, and damages enemy
+        public void Attack(Player defender)
         {
+            
+            //checking which attack was used
+            if (gamePadState.Buttons.X == ButtonState.Pressed)
+            {
+                currAttack = attacks[0];
+            } else if (gamePadState.Buttons.Y == ButtonState.Pressed)
+            {
+                currAttack = attacks[1];
+            } else
+            {
+                return;
+            }
 
+            //checking for hit
+            currAttack.hitboxTL = new Vector3(position.X + currAttack.hitboxOffset.X, position.Y + currAttack.hitboxOffset.Y, 0);
+            currAttack.hitboxBR = new Vector3(currAttack.hitboxTL.X + hitboxWidth, currAttack.hitboxTL.Y + hitboxheight, 0);
+
+            if (currAttack.hitboxTL.X >= defender.hitboxBR.X || currAttack.hitboxBR.X <= defender.hitboxTL.X)
+            {
+                hit = false;
+            }
+            if (currAttack.hitboxBR.Y >= defender.hitboxTL.Y || currAttack.hitboxTL.Y <= defender.hitboxBR.Y)
+            {
+                hit = false;
+            }
+            hit = true;
         }
 
         //update player speedX
@@ -84,7 +113,7 @@ namespace INFGame
         }
 
         //changing player speed value if player presses A while on floor (used in player collision method)
-        public void OnFloor()
+        public void Jump()
         {
             onFloor = position.Y <= 0;
 

@@ -11,14 +11,15 @@ namespace INFGame
         private Matrix view;
         private Matrix projection;
         //other variables
-        private float speedMultiplier;
         private GraphicsDeviceManager graphics;
         private SpriteBatch spriteBatch;
         private Vector3 arenaSize;
         private SpriteFont font;
         Player player1 = new Player();
         Player player2 = new Player();
-        private Model scene;
+        Attack lightAttack = new Attack();
+        Attack heavyAttack = new Attack();
+        Attack[] attackList;
 
 
         public Game1()
@@ -40,8 +41,9 @@ namespace INFGame
             player2.position = new Vector3(5, 0, 0);
             view = Matrix.CreateLookAt(new Vector3(0, 5, 20), new Vector3(0, 5, 0), Vector3.UnitY);
             projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(60), 1920f / 1080f, 0.1f, 100f);
-            speedMultiplier = 0.4f;
             arenaSize = new Vector3(20, 0, 0);
+
+
         }
 
         //load assets
@@ -50,6 +52,11 @@ namespace INFGame
             player1.model = Content.Load<Model>("TestCube");
             player2.model = Content.Load<Model>("TestCube");
             font = Content.Load<SpriteFont>("File");
+            lightAttack.LightAttack();
+            heavyAttack.HeavyAttack();
+            Attack[] attackList = {lightAttack, heavyAttack};
+            player1.attacks = attackList;
+            player2.attacks = attackList;
 
         }
 
@@ -58,6 +65,7 @@ namespace INFGame
         {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
+            player1.hit = false;
             //saving controller state
             player1.gamePadState = GamePad.GetState(PlayerIndex.One);
             player2.gamePadState = GamePad.GetState(PlayerIndex.Two);
@@ -65,8 +73,8 @@ namespace INFGame
             player1.gamePadY = player1.gamePadState.ThumbSticks.Left.Y;
             player2.gamePadX = player2.gamePadState.ThumbSticks.Left.X;
             player2.gamePadY = player2.gamePadState.ThumbSticks.Left.Y;
-            player1.OnFloor();
-            player2.OnFloor(); 
+            player1.Jump();
+            player2.Jump();
 
 
 
@@ -75,7 +83,10 @@ namespace INFGame
             player1.SetPlayerHitBox(); //Object method that sets 2 vectors for the 2 corners of the hitbox
             player2.PlayerSpeedX();
             player2.PlayerCollision(arenaSize);
-            player2.SetPlayerHitBox(); 
+            player2.SetPlayerHitBox();
+            player1.Attack(player2);
+            player2.Attack(player1);
+
 
             //translating player position to matrix for rendering
             player1.matrix = Matrix.CreateTranslation(player1.position);
@@ -98,6 +109,7 @@ namespace INFGame
             spriteBatch.DrawString(font, player1.speedY.ToString(), new Vector2(100, 120), Color.Black);
             spriteBatch.DrawString(font, player1.speedX.ToString(), new Vector2(100, 140), Color.Black);
             spriteBatch.DrawString(font, player1.onFloor.ToString(), new Vector2(100, 160), Color.Black);
+            spriteBatch.DrawString(font, player1.hit.ToString(), new Vector2(100, 180), Color.Black);
             spriteBatch.End();
 
 
