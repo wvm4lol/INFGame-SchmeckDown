@@ -20,7 +20,6 @@ namespace INFGame
         Attack lightAttack = new Attack();
         Attack heavyAttack = new Attack();
         Attack[] attackList;
-        Model[] cubes;
 
 
         public Game1()
@@ -80,16 +79,16 @@ namespace INFGame
             player2.gamePadX = player2.gamePadState.ThumbSticks.Left.X;
             player2.gamePadY = player2.gamePadState.ThumbSticks.Left.Y;
 
-            player1.Jump();
-            player2.Jump();
-            player1.PlayerSpeedX();
-            player2.PlayerSpeedX();
-            player1.SetPlayerHitBox();
-            player2.SetPlayerHitBox();
+            player1.PlayerMoveY();
+            player2.PlayerMoveY();
+            player1.PlayerMoveX();
+            player2.PlayerMoveX();
             player1.Attack(player2);
             player2.Attack(player1);
             player1.PlayerCollision(arenaSize);
             player2.PlayerCollision(arenaSize);
+            player1.SetPlayerHitBox();
+            player2.SetPlayerHitBox();
 
 
 

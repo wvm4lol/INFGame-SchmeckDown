@@ -50,7 +50,7 @@ namespace INFGame
         {
             
             //checking which attack was used
-            if (gamePadState.Buttons.X != oldGamePadState.Buttons.X && gamePadState.Buttons.X == ButtonState.Pressed)
+            if (gamePadState.Buttons.X != oldGamePadState.Buttons.X && gamePadState.Buttons.X == ButtonState.Pressed) //only allowing an attack if the correct button is pressed and it was not pressed the previous loop
             {
                 currAttack = attacks[0];
             } else if (gamePadState.Buttons.Y != oldGamePadState.Buttons.Y && gamePadState.Buttons.Y == ButtonState.Pressed)
@@ -61,10 +61,11 @@ namespace INFGame
                 return;
             }
 
-            //checking for hit
+            //setting the location of the hitboxes of the attack
             currAttack.hitboxTL = new Vector3(position.X + currAttack.hitboxOffset.X,position.Y + currAttack.hitboxOffset.Y + currAttack.hitboxHeight, 0);
             currAttack.hitboxBR = new Vector3(position.X + currAttack.hitboxWidth + currAttack.hitboxOffset.X,position.Y + currAttack.hitboxOffset.Y, 0);
 
+            //checking if the attack hits the enemy player
             if (currAttack.hitboxTL.X >= defender.hitboxBR.X || currAttack.hitboxBR.X <= defender.hitboxTL.X)
             {
                 hit = false;
@@ -73,6 +74,7 @@ namespace INFGame
                 hit = false;
             } else
             {
+                //if it hits apply knockback and damage
                 hit = true;
                 defender.speedX = facing * currAttack.knockbackX;
                 defender.speedY = facing * currAttack.knockbackY;
@@ -84,11 +86,11 @@ namespace INFGame
         }
 
         //update player speedX
-        public float PlayerSpeedX()
+        public void PlayerMoveX()
         {
             //player max speed, player acceleration speed and player deacceleration speed
-            float speedLim = 0.5f;
-            float accelMultiplier = 0.2f;
+            float speedLim = 0.25f;
+            float accelMultiplier = 0.1f;
             float decelMultiplier = 0.05f;
             //if there is input, update speed to match it
             if (gamePadX != 0)
@@ -126,11 +128,10 @@ namespace INFGame
             {
                 speedX = -speedLim;
             }
-            return speedX;
         }
 
         //changing player speed value if player presses A while on floor (used in player collision method)
-        public void Jump()
+        public void PlayerMoveY()
         {
             onFloor = position.Y <= 0;
 
@@ -153,7 +154,7 @@ namespace INFGame
             }
         }
 
-        //method that checks player collision and updates position
+        //method that checks player collision and updates position 
         public void PlayerCollision(Vector3 arena)
         {
             position += new Vector3(speedX, 0, 0);
