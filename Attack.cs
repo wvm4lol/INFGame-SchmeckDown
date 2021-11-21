@@ -24,24 +24,24 @@ namespace INFGame
         public void LightAttack()
         {
             damage = 50;
-            knockbackX = 0.8f;
+            knockbackX = 0.9f;
             knockbackY = 0.5f;
-            attackermoveX = 0.7f;
-            attackermoveY = 0.3f;
+            attackermoveX = 0.5f;
+            attackermoveY = 0.2f;
             hitboxWidth = 4;
             hitboxHeight = 3;
-            hitboxOffset = new Vector3(0, 1, 0);
+            hitboxOffset = new Vector3(1.5f, 1, 0);
         }
         public void HeavyAttack()
         {
             damage = 150;
-            knockbackX = 2.0f;
-            knockbackY = 1.0f;
-            attackermoveX = 1.9f;
-            attackermoveY = 0.9f;
-            hitboxWidth = 1;
-            hitboxHeight = 1;
-            hitboxOffset = new Vector3(0.5f, 1, 0);
+            knockbackX = 3.2f;
+            knockbackY = 0.65f;
+            attackermoveX = 0.9f;
+            attackermoveY = 0.4f;
+            hitboxWidth = 3.5f;
+            hitboxHeight = 2;
+            hitboxOffset = new Vector3(1.5f, 0, 0);
         }
     }
 }
