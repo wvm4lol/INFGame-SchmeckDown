@@ -37,6 +37,8 @@ namespace INFGame
         public Attack[] attacks; //list of attacks for easy storing/referencing
         public bool hit; //if atack hits (temp)
         public int facing; //direction player is facing (+1 = right, -1 = left)
+        public bool blocking; //if player is blocking (no damage taken and less knockback, but can be broken to stun you)
+        public int stunned; //updates player is frozen/stunned for, 0 = not stunned
 
 
         //set player hitbox relative to playerpos
@@ -114,11 +116,20 @@ namespace INFGame
                 hit = false;
             } else
             {
-                //if it hits apply knockback and damage
                 hit = true;
-                defender.speedX = facing * currAttack.knockbackX;
-                defender.speedY = currAttack.knockbackY;
 
+                if (!defender.blocking)
+                {
+                    //if it hits apply knockback and damage, unblocked version
+                    defender.speedX = facing * currAttack.knockbackX;
+                    defender.speedY = currAttack.knockbackY;
+                    defender.health = defender.health - currAttack.damage;
+                } else
+                {
+                    //if it hits apply knockback and damage, blocked version
+                    defender.speedX = 0.7f * facing * currAttack.knockbackX;
+                    defender.speedY = 0.7f * currAttack.knockbackY;
+                }
             }
             speedX = facing * currAttack.attackermoveX;
             speedY = currAttack.attackermoveY;

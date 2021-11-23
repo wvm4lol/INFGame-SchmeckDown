@@ -20,6 +20,20 @@
 /processorParam:TextureFormat=Compressed
 /build:File.spritefont
 
+#begin GameOverFont.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/processorParam:PremultiplyAlpha=True
+/processorParam:TextureFormat=Compressed
+/build:GameOverFont.spritefont
+
+#begin GameOverFontSub.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/processorParam:PremultiplyAlpha=True
+/processorParam:TextureFormat=Compressed
+/build:GameOverFontSub.spritefont
+
 #begin TestCube.fbx
 /importer:FbxImporter
 /processor:ModelProcessor
