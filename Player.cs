@@ -41,6 +41,8 @@ namespace INFGame
         public int stunned; //updates player is frozen/stunned for, 0 = not stunned
 
 
+
+
         //set player hitbox relative to playerpos
         public void SetPlayerHitBox()
         {
@@ -55,55 +57,109 @@ namespace INFGame
         //checks if player is attacking, if it hits, and damages enemy
         public void Attack(Player defender)
         {
+            float inAirAttackOffset;
+            if (stunned > 0)
+            {
+                return;
+            }
             //checking what control scheme to use and then checking 
             if (contrlScheme == 0)
             {
-                if (gamePadState.Buttons.X != oldGamePadState.Buttons.X && gamePadState.Buttons.X == ButtonState.Pressed) //only allowing an attack if the correct button is pressed and it was not pressed the previous loop
+                if (gamePadState.Triggers.Right <= 0.7f)
                 {
-                    currAttack = attacks[0];
-                } else if (gamePadState.Buttons.Y != oldGamePadState.Buttons.Y && gamePadState.Buttons.Y == ButtonState.Pressed)
-                {
-                    currAttack = attacks[1];
+                    blocking = false;
+                    if (gamePadState.Buttons.X != oldGamePadState.Buttons.X && gamePadState.Buttons.X == ButtonState.Pressed) //only allowing an attack if the correct button is pressed and it was not pressed the previous loop
+                    {
+                        currAttack = attacks[0];
+                    }
+                    else if (gamePadState.Buttons.Y != oldGamePadState.Buttons.Y && gamePadState.Buttons.Y == ButtonState.Pressed)
+                    {
+                        currAttack = attacks[1];
+                    }
+                    else if (gamePadState.Buttons.B != oldGamePadState.Buttons.B && gamePadState.Buttons.B == ButtonState.Pressed)
+                    {
+                        currAttack = attacks[2];
+                    }
+                    else
+                    {
+                        return;
+                    }
                 } else
                 {
+                    Block();
                     return;
                 }
+
             } else if (contrlScheme == 1)
             {
-                if (keybState.IsKeyDown(Keys.G) != oldKeybState.IsKeyDown(Keys.G) && keybState.IsKeyDown(Keys.G)) //only allowing an attack if the correct button is pressed and it was not pressed the previous loop
+                if (keybState.IsKeyUp(Keys.Space))
                 {
-                    currAttack = attacks[0];
-                } else if (keybState.IsKeyDown(Keys.H) != oldKeybState.IsKeyDown(Keys.H) && keybState.IsKeyDown(Keys.H))
-                {
-                    currAttack = attacks[1];
+                    blocking = false;
+                    if (keybState.IsKeyDown(Keys.G) != oldKeybState.IsKeyDown(Keys.G) && keybState.IsKeyDown(Keys.G)) //only allowing an attack if the correct button is pressed and it was not pressed the previous loop
+                    {
+                        currAttack = attacks[0];
+                    }
+                    else if (keybState.IsKeyDown(Keys.H) != oldKeybState.IsKeyDown(Keys.H) && keybState.IsKeyDown(Keys.H))
+                    {
+                        currAttack = attacks[1];
+                    }
+                    else if (keybState.IsKeyDown(Keys.J) != oldKeybState.IsKeyDown(Keys.J) && keybState.IsKeyDown(Keys.J))
+                    {
+                        currAttack = attacks[2];
+                    }
+                    else
+                    {
+                        return;
+                    }
                 } else
                 {
+                    Block();
                     return;
                 }
+
             } else if (contrlScheme == 2)
             {
-                if (keybState.IsKeyDown(Keys.NumPad1) != oldKeybState.IsKeyDown(Keys.NumPad1) && keybState.IsKeyDown(Keys.NumPad1))
+                if (keybState.IsKeyUp(Keys.NumPad0))
                 {
-                    currAttack = attacks[0];
-                } else if (keybState.IsKeyDown(Keys.NumPad2) != oldKeybState.IsKeyDown(Keys.NumPad2) && keybState.IsKeyDown(Keys.NumPad2))
-                {
-                    currAttack = attacks[1];
+                    blocking = false;
+                    if (keybState.IsKeyDown(Keys.NumPad1) != oldKeybState.IsKeyDown(Keys.NumPad1) && keybState.IsKeyDown(Keys.NumPad1))
+                    {
+                        currAttack = attacks[0];
+                    }
+                    else if (keybState.IsKeyDown(Keys.NumPad2) != oldKeybState.IsKeyDown(Keys.NumPad2) && keybState.IsKeyDown(Keys.NumPad2))
+                    {
+                        currAttack = attacks[1];
+                    }
+                    else if (keybState.IsKeyDown(Keys.NumPad3) != oldKeybState.IsKeyDown(Keys.NumPad3) && keybState.IsKeyDown(Keys.NumPad3))
+                    {
+                        currAttack = attacks[2];
+                    }
+                    else
+                    {
+                        return;
+                    }
                 } else
                 {
+                    Block();
                     return;
                 }
             }
-
-
-            //setting the location of the hitboxes of the attack, one for each direction
-            if (facing > 0)
+            if (!onFloor)
             {
-                currAttack.hitboxTL = new Vector3(position.X + currAttack.hitboxOffset.X, position.Y + currAttack.hitboxOffset.Y + currAttack.hitboxHeight, 0);
-                currAttack.hitboxBR = new Vector3(position.X + currAttack.hitboxOffset.X + currAttack.hitboxWidth, position.Y + currAttack.hitboxOffset.Y, 0);
+                inAirAttackOffset = 3;
             } else
             {
-                currAttack.hitboxTL = new Vector3(position.X - currAttack.hitboxOffset.X - currAttack.hitboxWidth, position.Y + currAttack.hitboxOffset.Y + currAttack.hitboxHeight, 0);
-                currAttack.hitboxBR = new Vector3(position.X - currAttack.hitboxOffset.X, position.Y - currAttack.hitboxOffset.Y, 0);
+                inAirAttackOffset = 0;
+            }
+            //setting the location of the hitboxes of the attack, one for each direction
+            if (facing == 1)
+            {
+                currAttack.hitboxTL = new Vector3(position.X + currAttack.hitboxOffset.X, position.Y + currAttack.hitboxOffset.Y + currAttack.hitboxHeight - inAirAttackOffset, 0);
+                currAttack.hitboxBR = new Vector3(position.X + currAttack.hitboxOffset.X + currAttack.hitboxWidth, position.Y + currAttack.hitboxOffset.Y - inAirAttackOffset, 0);
+            } else
+            {
+                currAttack.hitboxTL = new Vector3(position.X - currAttack.hitboxOffset.X - currAttack.hitboxWidth, position.Y + currAttack.hitboxOffset.Y + currAttack.hitboxHeight - inAirAttackOffset, 0);
+                currAttack.hitboxBR = new Vector3(position.X - currAttack.hitboxOffset.X, position.Y + currAttack.hitboxOffset.Y - inAirAttackOffset, 0);
             }
 
 
@@ -126,19 +182,34 @@ namespace INFGame
                     defender.health = defender.health - currAttack.damage;
                 } else
                 {
-                    //if it hits apply knockback and damage, blocked version
-                    defender.speedX = 0.7f * facing * currAttack.knockbackX;
-                    defender.speedY = 0.7f * currAttack.knockbackY;
+                    if (currAttack.guardBreak)
+                    {
+                        defender.stunned = 60;
+                        defender.health = defender.health - currAttack.damage;
+                        defender.speedX = facing * currAttack.knockbackX;
+                        defender.speedY = currAttack.knockbackY;
+                    }
+                    else
+                    {
+                        //if it hits apply knockback and damage, blocked version
+                        defender.speedX = 0.6f * facing * currAttack.knockbackX;
+                        defender.speedY = 0.6f * currAttack.knockbackY;
+                    }
                 }
             }
             speedX = facing * currAttack.attackermoveX;
             speedY = currAttack.attackermoveY;
 
+            void Block()
+            {
+                blocking = true;
+            }
         }
 
         //get the current state of the players controller
         public void GetControllerState()
         {
+
             if (contrlScheme == 0)
             {
                 //updating controller state, previous controller state and assigning left thumbstick variables for ease of use
@@ -185,7 +256,12 @@ namespace INFGame
                     gamePadX = 0;
                 }
             }
-
+            if (stunned > 0)
+            {
+                stunned--;
+                gamePadX = 0;
+                gamePadY = 0;
+            }
 
         }
 
@@ -193,14 +269,25 @@ namespace INFGame
         public void PlayerMoveX()
         {
             //player max speed, player acceleration speed and player deacceleration speed
-            float speedLim = 0.3f;
+            float maxSpeed = 0.3f; //speed limit you can change 
+            float speedLim; //speed limit used in calculations
             float accelMultiplier = 0.1f;
             float decelMultiplierFloor = 0.05f;
             float decelMultiplierAir = speedX * 0.03f;
+            float blockSlow;
+            if (blocking)
+            {
+                blockSlow = 0.4f;
+                speedLim = maxSpeed * blockSlow;
+            } else
+            {
+                blockSlow = 1;
+                speedLim = maxSpeed;
+            }
             //if there is input, update speed to match it
             if (gamePadX != 0)
             {
-                speedX = speedX + accelMultiplier * gamePadX;
+                speedX = speedX + accelMultiplier * blockSlow * gamePadX;
             }
             else
             {
@@ -264,7 +351,7 @@ namespace INFGame
         //changing player speed value if player presses A while on floor (used in player collision method)
         public void PlayerMoveY()
         {
-            float fallSpeed = 0.04f;
+            float fallSpeed = 0.03f;
             float jumpSpeed = 0.7f;
             onFloor = position.Y <= 0;
             if (contrlScheme == 0)
@@ -272,7 +359,7 @@ namespace INFGame
                 //checking if player is in the air or on the floor, if he is on he floor, set the vertical speed to jump speed (for multiple control schemes)
                 if (onFloor)
                 {
-                    if (gamePadState.Buttons.A == ButtonState.Pressed)
+                    if (gamePadState.Buttons.A == ButtonState.Pressed && stunned <= 0)
                     {
                         speedY = jumpSpeed;
 
@@ -291,7 +378,7 @@ namespace INFGame
             {
                 if (onFloor)
                 {
-                    if (keybState.IsKeyDown(Keys.W))
+                    if (keybState.IsKeyDown(Keys.W) && stunned <= 0)
                     {
                         speedY = jumpSpeed;
 
@@ -310,7 +397,7 @@ namespace INFGame
             {
                 if (onFloor)
                 {
-                    if (keybState.IsKeyDown(Keys.Up))
+                    if (keybState.IsKeyDown(Keys.Up) && stunned <= 0)
                     {
                         speedY = jumpSpeed;
 

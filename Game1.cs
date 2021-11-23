@@ -22,6 +22,7 @@ namespace INFGame
         Player player2 = new Player();
         Attack lightAttack = new Attack();
         Attack heavyAttack = new Attack();
+        Attack guardBreak = new Attack();
         Attack[] attackList;
         
 
@@ -84,8 +85,9 @@ namespace INFGame
             //setting attack values through a very dumb way, but i'm too stupid to learn how JSONs work
             lightAttack.LightAttack();
             heavyAttack.HeavyAttack();
+            guardBreak.GuardBreak();
             //putting atacks in a list for easy access and giving them to player objects, probably also very inefficient
-            Attack[] attackList = {lightAttack, heavyAttack};
+            Attack[] attackList = {lightAttack, heavyAttack, guardBreak};
             player1.attacks = attackList;
             player2.attacks = attackList;
         }
