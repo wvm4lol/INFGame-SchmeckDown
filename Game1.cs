@@ -49,7 +49,7 @@ namespace INFGame
             player2.position = new Vector3(5, 0, 0);
             //creating matrices for rendering
             view = Matrix.CreateLookAt(new Vector3(0, 5, 20), new Vector3(0, 5, 0), Vector3.UnitY);
-            projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(60), 1920f / 1080f, 0.1f, 100f);
+            projection = Matrix.CreateOrthographic(40, 22.5f, 0.1f, 100);
             //assigning controllers to players and getting first state for checking connection
             player1.gamePadState = GamePad.GetState(PlayerIndex.One);
             player2.gamePadState = GamePad.GetState(PlayerIndex.Two);
