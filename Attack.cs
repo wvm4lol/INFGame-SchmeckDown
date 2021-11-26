@@ -53,7 +53,7 @@ namespace INFGame
             knockbackX = 3;
             knockbackY = 0.3f;
             attackermoveX = 0.6f;
-            attackermoveY = 0;
+            attackermoveY = 0.2f;
             hitboxWidth = 2.5f;
             hitboxHeight = 2;
             hitboxOffset = new Vector3(1.5f, 0, 0);

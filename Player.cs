@@ -13,14 +13,12 @@ namespace INFGame
         public Vector3 position;
         public int health = 1000; //player health
         public Matrix matrix; //matrix for rendering player
-        public Matrix hitbTL; //player hitbox location rendering matrix (top left) (temp)
-        public Matrix hitbBR; //(bottom right)
-        public Matrix atthitbTL;  //player attack hitbox location rendering matrix (temp)
-        public Matrix atthitbBR;
         public bool onFloor; //if player is on the floor/in the air
         public float speedY = 0; //player speed horizontal
         public float speedX = 0; //player speed vertical
         public Model model; //player model
+        public Animations animations = new Animations();//object containing model and animation
+
         public PlayerIndex contrIndex; //which controller this player is using
         public int contrlScheme = 0; //if this player is using a controller
         public KeyboardState keybState; //current state of keyboard
@@ -29,10 +27,13 @@ namespace INFGame
         public GamePadState oldGamePadState; //player previous controller state (for checking if button was already pressed or newly pressed)
         public float gamePadX; //controller right joystick x axis
         public float gamePadY; //controller right joystick y axis
+
         public Vector3 hitboxTL; //player hitbox location (top left)
         public Vector3 hitboxBR; //(bottom right)
-        public float hitboxWidth = 1.5f; //player hitbox dimensions
-        public float hitboxheight = 2.5f;
+
+        public float hitboxWidth = 3f; //player hitbox dimensions
+        public float hitboxheight = 6.5f;
+
         public Attack currAttack = new Attack(); //for loading stats of attack player is currently performing
         public Attack[] attacks; //list of attacks for easy storing/referencing
         public bool hit; //if atack hits (temp)
@@ -46,12 +47,8 @@ namespace INFGame
         //set player hitbox relative to playerpos
         public void SetPlayerHitBox()
         {
-            hitboxTL = new Vector3(position.X - hitboxWidth / 2, position.Y + hitboxheight, 0);
-            hitboxBR = new Vector3(position.X + hitboxWidth / 2, position.Y, 0);
-            hitbTL = Matrix.CreateScale(new Vector3(0.1f, 0.1f, 0.1f)) * Matrix.CreateTranslation(hitboxTL);
-            hitbBR = Matrix.CreateScale(new Vector3(0.1f, 0.1f, 0.1f)) * Matrix.CreateTranslation(hitboxBR);
-            atthitbTL = Matrix.CreateScale(new Vector3(0.1f, 0.1f, 0.1f)) * Matrix.CreateTranslation(currAttack.hitboxTL);
-            atthitbBR = Matrix.CreateScale(new Vector3(0.1f, 0.1f, 0.1f)) * Matrix.CreateTranslation(currAttack.hitboxBR);
+            hitboxTL = new Vector3(position.X + facing - hitboxWidth / 2, position.Y + hitboxheight, 0);
+            hitboxBR = new Vector3(position.X + facing + hitboxWidth / 2, position.Y, 0);
         }
 
         //checks if player is attacking, if it hits, and damages enemy
@@ -144,6 +141,7 @@ namespace INFGame
                     return;
                 }
             }
+            //animations.SetCurrAnim(2); //punch animation
             if (!onFloor)
             {
                 inAirAttackOffset = 3;
@@ -259,6 +257,7 @@ namespace INFGame
             if (stunned > 0)
             {
                 stunned--;
+                //animations.SetCurrAnim(5); //stunned animation
                 gamePadX = 0;
                 gamePadY = 0;
             }
@@ -287,6 +286,13 @@ namespace INFGame
             //if there is input, update speed to match it
             if (gamePadX != 0)
             {
+                if (blocking)
+                {
+                    //animations.SetCurrAnim(3); //blocking walk animation
+                } else
+                {
+                    model = animations.SetCurrAnim(1); //walk animation
+                }
                 speedX = speedX + accelMultiplier * blockSlow * gamePadX;
             }
             else
@@ -311,6 +317,17 @@ namespace INFGame
                             speedX = 0;
                         }
                         speedX = speedX + decelMultiplierFloor;
+                    }
+                    else if (speedX == 0)
+                    {
+                        if (blocking)
+                        {
+                            //animations.SetCurrAnim(4); //blocking animation
+                        }
+                        else
+                        {
+                            //animations.SetCurrAnim(0); //idle animation
+                        }
                     }
                 } else
                 {
@@ -439,5 +456,9 @@ namespace INFGame
             position += new Vector3(0, speedY, 0);
         }
 
+        public void PlayerAnimation()
+        {
+
+        }
     }
 }

@@ -1,7 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using Myra;
 
 namespace INFGame
 {
@@ -24,6 +23,8 @@ namespace INFGame
         Attack heavyAttack = new Attack();
         Attack guardBreak = new Attack();
         Attack[] attackList;
+        Animations animationList;
+        
         
 
 
@@ -90,6 +91,37 @@ namespace INFGame
             Attack[] attackList = {lightAttack, heavyAttack, guardBreak};
             player1.attacks = attackList;
             player2.attacks = attackList;
+            LoadPlayerAnimations(player1);
+            LoadPlayerAnimations(player2);
+
+            void LoadPlayerAnimations(Player player)
+            {
+                //loading animations, for every frame in said animation, set that place in array to that model
+                //for (int i = 0; i <= 1; i++)
+                //{
+                //    player.animations.idle[i] = Content.Load<Model>("idleAnim" + i.ToString());
+                //}
+                for (int i = 0; i <= 7; i++)
+                {
+                    player.animations.walk[i] = Content.Load<Model>("walkAnim" + i.ToString());
+                }
+                //for (int i = 0; i <= 7; i++)
+                //{
+                //    player.animations.punch[i] = Content.Load<Model>("punchAnim" + i.ToString());
+                //}
+                //for (int i = 0; i <= 7; i++)
+                //{
+                //    player.animations.blockingWalk[i] = Content.Load<Model>("blockingWalkAnim" + i.ToString());
+                //}
+                //for (int i = 0; i <= 7; i++)
+                //{
+                //    player.animations.blocking[i] = Content.Load<Model>("blockingAnim" + i.ToString());
+                //}
+                //for (int i = 0; i <= 7; i++)
+                //{
+                //    player.animations.stunned[i] = Content.Load<Model>("stunnedAnim" + i.ToString());
+                //}
+            }
         }
 
         //game update loop
@@ -98,6 +130,7 @@ namespace INFGame
             //default check to exit game on esc
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
+            //check if players have died, if they have go to menu until button press to reset
             if (player1.health <= 0 || player2.health <= 0)
             {
                 player1.GetControllerState();
@@ -132,8 +165,8 @@ namespace INFGame
 
 
             //translating player position to matrix for rendering
-            player1.matrix = Matrix.CreateTranslation(player1.position);
-            player2.matrix = Matrix.CreateTranslation(player2.position);
+            player1.matrix = Matrix.CreateRotationX(MathHelper.ToRadians(90)) * Matrix.CreateRotationY(MathHelper.ToRadians(-90)) * Matrix.CreateScale(new Vector3(0.4f, -0.4f, 0.4f)) * Matrix.CreateTranslation(player1.position);
+            player2.matrix = Matrix.CreateRotationX(MathHelper.ToRadians(90)) * Matrix.CreateRotationY(MathHelper.ToRadians(-90)) * Matrix.CreateScale(new Vector3(-0.4f, -0.4f, 0.4f)) * Matrix.CreateTranslation(player2.position);
 
             base.Update(gameTime);
         }
@@ -163,14 +196,7 @@ namespace INFGame
                 //rendering using method
                 DrawModel(player1.model, player1.matrix, view, projection);
                 DrawModel(player2.model, player2.matrix, view, projection);
-                DrawModel(player1.model, player2.hitbBR, view, projection);
-                DrawModel(player1.model, player2.hitbTL, view, projection);
-                DrawModel(player1.model, player2.atthitbBR, view, projection);
-                DrawModel(player1.model, player2.atthitbTL, view, projection);
-                DrawModel(player1.model, player1.hitbBR, view, projection);
-                DrawModel(player1.model, player1.hitbTL, view, projection);
-                DrawModel(player1.model, player1.atthitbBR, view, projection);
-                DrawModel(player1.model, player1.atthitbTL, view, projection);
+
 
                 //drawing values for development 
                 spriteBatch.Begin();
