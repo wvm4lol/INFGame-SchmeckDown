@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Microsoft.Xna.Framework.Media;
 
 namespace INFGame
 {
@@ -10,7 +11,11 @@ namespace INFGame
         //camera variables
         private Matrix view;
         private Matrix projection;
+        private Matrix stageMatrix;
+        Vector3 cameraPos; 
+       
         //other variables
+        Model stage; //model used for the floor
         private GraphicsDeviceManager graphics;
         private SpriteBatch spriteBatch;
         private Vector3 arenaSize = new Vector3(20, 0, 0);
@@ -24,7 +29,7 @@ namespace INFGame
         Attack guardBreak = new Attack();
         Attack[] attackList;
         Animations animationList;
-        
+        Song backgroundMusic;
         
 
 
@@ -49,6 +54,7 @@ namespace INFGame
             player1.position = new Vector3(-5, 0, 0);
             player2.position = new Vector3(5, 0, 0);
             //creating matrices for rendering
+            cameraPos = new Vector3(0, 5, 20);
             view = Matrix.CreateLookAt(new Vector3(0, 5, 20), new Vector3(0, 5, 0), Vector3.UnitY);
             projection = Matrix.CreateOrthographic(40, 22.5f, 0.1f, 100);
             //assigning controllers to players and getting first state for checking connection
@@ -78,9 +84,8 @@ namespace INFGame
         protected override void LoadContent()
         {
             //assigning players their default models and loading default font for text
-            player1.model = Content.Load<Model>("TestCube");
-            player2.model = Content.Load<Model>("TestCube");
             font = Content.Load<SpriteFont>("File");
+            //loading fonts
             gameOverFont = Content.Load<SpriteFont>("GameOverFont");
             gameOverSubFont = Content.Load<SpriteFont>("GameOverFontSub");
             //setting attack values through a very dumb way, but i'm too stupid to learn how JSONs work
@@ -91,16 +96,27 @@ namespace INFGame
             Attack[] attackList = {lightAttack, heavyAttack, guardBreak};
             player1.attacks = attackList;
             player2.attacks = attackList;
+            //loading player animations
             LoadPlayerAnimations(player1);
             LoadPlayerAnimations(player2);
 
+            //loading music
+            backgroundMusic = Content.Load<Song>("nummer1");
+            MediaPlayer.Play(backgroundMusic);
+            MediaPlayer.IsRepeating = true;
+            MediaPlayer.Volume = 0.05f;
+            //loading stage
+            stage = Content.Load<Model>("StageCube");
+            stageMatrix = Matrix.CreateScale(new Vector3(20, 1, 4)) * Matrix.CreateTranslation(new Vector3(0, -1, 0));
+
+            
             void LoadPlayerAnimations(Player player)
             {
                 //loading animations, for every frame in said animation, set that place in array to that model
-                //for (int i = 0; i <= 1; i++)
-                //{
-                //    player.animations.idle[i] = Content.Load<Model>("idleAnim" + i.ToString());
-                //}
+                for (int i = 0; i <= 1; i++)
+                {
+                    player.animations.idle[i] = Content.Load<Model>("idleAnim" + i.ToString());
+                }
                 for (int i = 0; i <= 7; i++)
                 {
                     player.animations.walk[i] = Content.Load<Model>("walkAnim" + i.ToString());
@@ -113,14 +129,14 @@ namespace INFGame
                 //{
                 //    player.animations.blockingWalk[i] = Content.Load<Model>("blockingWalkAnim" + i.ToString());
                 //}
-                //for (int i = 0; i <= 7; i++)
-                //{
-                //    player.animations.blocking[i] = Content.Load<Model>("blockingAnim" + i.ToString());
-                //}
-                //for (int i = 0; i <= 7; i++)
-                //{
-                //    player.animations.stunned[i] = Content.Load<Model>("stunnedAnim" + i.ToString());
-                //}
+                for (int i = 0; i <= 2; i++)
+                {
+                    player.animations.blocking[i] = Content.Load<Model>("block" + i.ToString());
+                }
+                for (int i = 0; i <= 2; i++)
+                {
+                    player.animations.stunned[i] = Content.Load<Model>("stunnedanim" + i.ToString());
+                }
             }
         }
 
@@ -136,8 +152,8 @@ namespace INFGame
                 player1.GetControllerState();
                 if (player1.gamePadState.Buttons.A == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Space))
                 {
-                    player1.health = 1000;
-                    player2.health = 1000;
+                    player1.health = 100;
+                    player2.health = 100;
                     player1.position = new Vector3(-5, 0, 0);
                     player2.position = new Vector3(5, 0, 0);
                     player1.speedX = 0; player1.speedY = 0;
@@ -191,23 +207,20 @@ namespace INFGame
 
             } else
             {
+                GraphicsDevice.DepthStencilState = DepthStencilState.Default;
                 //rendering background as specific shade of blue
                 GraphicsDevice.Clear(Color.CornflowerBlue);
                 //rendering using method
+                DrawModel(stage, stageMatrix, view, projection);
                 DrawModel(player1.model, player1.matrix, view, projection);
                 DrawModel(player2.model, player2.matrix, view, projection);
 
 
                 //drawing values for development 
                 spriteBatch.Begin();
-                spriteBatch.DrawString(font, player1.position.ToString(), new Vector2(100, 100), Color.Black);
-                spriteBatch.DrawString(font, player1.speedY.ToString(), new Vector2(100, 120), Color.Black);
-                spriteBatch.DrawString(font, player1.speedX.ToString(), new Vector2(100, 140), Color.Black);
-                spriteBatch.DrawString(font, player1.onFloor.ToString(), new Vector2(100, 160), Color.Black);
-                spriteBatch.DrawString(font, player1.facing.ToString(), new Vector2(100, 180), Color.Black);
-                spriteBatch.DrawString(font, player1.contrlScheme.ToString(), new Vector2(100, 200), Color.Black);
-                spriteBatch.DrawString(font, player2.contrlScheme.ToString(), new Vector2(100, 220), Color.Black);
-                spriteBatch.DrawString(font, player1.health.ToString(), new Vector2(100, 240), Color.Black);
+                spriteBatch.DrawString(gameOverSubFont, "Health: " + player1.health.ToString() + "%", new Vector2(0, 100), Color.Black);
+                spriteBatch.DrawString(gameOverSubFont, "Health: " + player2.health.ToString() + "%", new Vector2(1650, 100), Color.Black);
+
 
                 spriteBatch.End();
             }

@@ -11,12 +11,13 @@ namespace INFGame
     public class Player
     {
         public Vector3 position;
-        public int health = 1000; //player health
+        public int health = 100; //player health
         public Matrix matrix; //matrix for rendering player
         public bool onFloor; //if player is on the floor/in the air
         public float speedY = 0; //player speed horizontal
         public float speedX = 0; //player speed vertical
         public Model model; //player model
+        public int animFrameRate; //var to pass trough for setting animation speed, i just want the pain of animations to stop
         public Animations animations = new Animations();//object containing model and animation
 
         public PlayerIndex contrIndex; //which controller this player is using
@@ -36,9 +37,11 @@ namespace INFGame
 
         public Attack currAttack = new Attack(); //for loading stats of attack player is currently performing
         public Attack[] attacks; //list of attacks for easy storing/referencing
-        public bool hit; //if atack hits (temp)
+        public float currAttackFrameRate; //frame rate of current attack, i really just want this to sttop so im just making new variables for everything
+        public bool hit; //if attack hits (temp)
         public int facing; //direction player is facing (+1 = right, -1 = left)
         public bool blocking; //if player is blocking (no damage taken and less knockback, but can be broken to stun you)
+        public int inAction; //if player is still doing something else, used to block animation canceling
         public int stunned; //updates player is frozen/stunned for, 0 = not stunned
 
 
@@ -51,12 +54,17 @@ namespace INFGame
             hitboxBR = new Vector3(position.X + facing + hitboxWidth / 2, position.Y, 0);
         }
 
-        //checks if player is attacking, if it hits, and damages enemy
+        //checks if player is attacking (or blocking), if it hits, and damages enemy
         public void Attack(Player defender)
         {
             float inAirAttackOffset;
             if (stunned > 0)
             {
+                return;
+            }
+            if (inAction > 0)
+            {
+                inAction--;
                 return;
             }
             //checking what control scheme to use and then checking 
@@ -68,14 +76,18 @@ namespace INFGame
                     if (gamePadState.Buttons.X != oldGamePadState.Buttons.X && gamePadState.Buttons.X == ButtonState.Pressed) //only allowing an attack if the correct button is pressed and it was not pressed the previous loop
                     {
                         currAttack = attacks[0];
+                        currAttackFrameRate = 5;
                     }
                     else if (gamePadState.Buttons.Y != oldGamePadState.Buttons.Y && gamePadState.Buttons.Y == ButtonState.Pressed)
                     {
                         currAttack = attacks[1];
+                        currAttackFrameRate = 10;
+
                     }
                     else if (gamePadState.Buttons.B != oldGamePadState.Buttons.B && gamePadState.Buttons.B == ButtonState.Pressed)
                     {
                         currAttack = attacks[2];
+                        currAttackFrameRate = 25;
                     }
                     else
                     {
@@ -95,14 +107,20 @@ namespace INFGame
                     if (keybState.IsKeyDown(Keys.G) != oldKeybState.IsKeyDown(Keys.G) && keybState.IsKeyDown(Keys.G)) //only allowing an attack if the correct button is pressed and it was not pressed the previous loop
                     {
                         currAttack = attacks[0];
+                        currAttackFrameRate = 5;
+
                     }
                     else if (keybState.IsKeyDown(Keys.H) != oldKeybState.IsKeyDown(Keys.H) && keybState.IsKeyDown(Keys.H))
                     {
                         currAttack = attacks[1];
+                        currAttackFrameRate = 10;
+
                     }
                     else if (keybState.IsKeyDown(Keys.J) != oldKeybState.IsKeyDown(Keys.J) && keybState.IsKeyDown(Keys.J))
                     {
                         currAttack = attacks[2];
+                        currAttackFrameRate = 25;
+
                     }
                     else
                     {
@@ -122,14 +140,19 @@ namespace INFGame
                     if (keybState.IsKeyDown(Keys.NumPad1) != oldKeybState.IsKeyDown(Keys.NumPad1) && keybState.IsKeyDown(Keys.NumPad1))
                     {
                         currAttack = attacks[0];
+                        currAttackFrameRate = 5;
+
                     }
                     else if (keybState.IsKeyDown(Keys.NumPad2) != oldKeybState.IsKeyDown(Keys.NumPad2) && keybState.IsKeyDown(Keys.NumPad2))
                     {
                         currAttack = attacks[1];
+                        currAttackFrameRate = 10;
                     }
                     else if (keybState.IsKeyDown(Keys.NumPad3) != oldKeybState.IsKeyDown(Keys.NumPad3) && keybState.IsKeyDown(Keys.NumPad3))
                     {
                         currAttack = attacks[2];
+                        currAttackFrameRate = 25;
+
                     }
                     else
                     {
@@ -141,7 +164,8 @@ namespace INFGame
                     return;
                 }
             }
-            //animations.SetCurrAnim(2); //punch animation
+            inAction = 8 * (int) currAttackFrameRate;
+            //animations.SetCurrAnim(2, currAttackFrameRate); //punch animation
             if (!onFloor)
             {
                 inAirAttackOffset = 3;
@@ -257,7 +281,7 @@ namespace INFGame
             if (stunned > 0)
             {
                 stunned--;
-                //animations.SetCurrAnim(5); //stunned animation
+                model = animations.SetCurrAnim(5, 20); //stunned animation
                 gamePadX = 0;
                 gamePadY = 0;
             }
@@ -268,7 +292,7 @@ namespace INFGame
         public void PlayerMoveX()
         {
             //player max speed, player acceleration speed and player deacceleration speed
-            float maxSpeed = 0.3f; //speed limit you can change 
+            float maxSpeed = 0.2f; //speed limit you can change 
             float speedLim; //speed limit used in calculations
             float accelMultiplier = 0.1f;
             float decelMultiplierFloor = 0.05f;
@@ -278,6 +302,10 @@ namespace INFGame
             {
                 blockSlow = 0.4f;
                 speedLim = maxSpeed * blockSlow;
+            } else if (inAction > 0)
+            {
+                blockSlow = 0.2f;
+                speedLim = maxSpeed * 0.2f;
             } else
             {
                 blockSlow = 1;
@@ -288,10 +316,10 @@ namespace INFGame
             {
                 if (blocking)
                 {
-                    //animations.SetCurrAnim(3); //blocking walk animation
+                    //animations.SetCurrAnim(3. 10); //blocking walk animation
                 } else
                 {
-                    model = animations.SetCurrAnim(1); //walk animation
+                    model = animations.SetCurrAnim(1, 6); //walk animation
                 }
                 speedX = speedX + accelMultiplier * blockSlow * gamePadX;
             }
@@ -322,11 +350,11 @@ namespace INFGame
                     {
                         if (blocking)
                         {
-                            //animations.SetCurrAnim(4); //blocking animation
+                            model = animations.SetCurrAnim(4, 15); //blocking animation
                         }
                         else
                         {
-                            //animations.SetCurrAnim(0); //idle animation
+                            model = animations.SetCurrAnim(0, 15); //idle animation
                         }
                     }
                 } else
@@ -376,7 +404,7 @@ namespace INFGame
                 //checking if player is in the air or on the floor, if he is on he floor, set the vertical speed to jump speed (for multiple control schemes)
                 if (onFloor)
                 {
-                    if (gamePadState.Buttons.A == ButtonState.Pressed && stunned <= 0)
+                    if (gamePadState.Buttons.A == ButtonState.Pressed && stunned <= 0 && inAction <= 0)
                     {
                         speedY = jumpSpeed;
 
@@ -395,7 +423,7 @@ namespace INFGame
             {
                 if (onFloor)
                 {
-                    if (keybState.IsKeyDown(Keys.W) && stunned <= 0)
+                    if (keybState.IsKeyDown(Keys.W) && stunned <= 0 && inAction <= 0)
                     {
                         speedY = jumpSpeed;
 
@@ -414,7 +442,7 @@ namespace INFGame
             {
                 if (onFloor)
                 {
-                    if (keybState.IsKeyDown(Keys.Up) && stunned <= 0)
+                    if (keybState.IsKeyDown(Keys.Up) && stunned <= 0 && inAction <= 0)
                     {
                         speedY = jumpSpeed;
 

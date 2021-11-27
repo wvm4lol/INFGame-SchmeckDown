@@ -24,7 +24,7 @@ namespace INFGame
 
         public void LightAttack()
         {
-            damage = 50;
+            damage = 5;
             knockbackX = 0.7f;
             knockbackY = 0.4f;
             attackermoveX = 0.3f;
@@ -36,7 +36,7 @@ namespace INFGame
         }
         public void HeavyAttack()
         {
-            damage = 150;
+            damage = 15;
             knockbackX = 0.8f;
             knockbackY = 0.4f;
             attackermoveX = 0.5f;
@@ -49,7 +49,7 @@ namespace INFGame
         
         public void GuardBreak()
         {
-            damage = 250;
+            damage = 25;
             knockbackX = 3;
             knockbackY = 0.3f;
             attackermoveX = 0.6f;

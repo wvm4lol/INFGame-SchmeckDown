@@ -13,27 +13,24 @@ namespace INFGame
         public Model[] walk = new Model[8];
         public Model[] punch;
         public Model[] blockingWalk;
-        public Model[] blocking;
-        public Model[] stunned;
+        public Model[] blocking = new Model[3];
+        public Model[] stunned = new Model[3];
         public Model[] currAnim; //current animation
         public Model[] prevAnim; //previous animation for checking if a new one was loaded
         public int currFrame; //frame of current animation
         public int currUpdate; //on which gameupdate the game is (60Hz)
-        public float animFrameRate; //how many updates are necessary for one frame
 
 
-        public Model SetCurrAnim(int type)
+        public Model SetCurrAnim(int type, float animFrameRate)
         {
             prevAnim = currAnim;
             switch (type)
             {
                 case 0:
                     currAnim = idle;
-                    animFrameRate = 15;
                     break;
                 case 1:
                     currAnim = walk;
-                    animFrameRate = 15;
                     break;
                 case 2:
                     currAnim = punch;
@@ -49,7 +46,20 @@ namespace INFGame
                     break;
             }
             currUpdate++;
-            if (currUpdate < animFrameRate)
+            if (type == 5 || type == 4)
+            {
+                if (currUpdate <= animFrameRate)
+                {
+                    return currAnim[0];
+                } else if (currUpdate > animFrameRate && currUpdate <= animFrameRate * 2)
+                {
+                    return currAnim[1];
+                } else
+                {
+                    return currAnim[2];
+                }
+            }
+            if (currUpdate <= animFrameRate)
             {
                 currFrame = 0;
             }
@@ -62,6 +72,7 @@ namespace INFGame
                 currFrame = 0;
                 currUpdate = 0;
             }
+
             return currAnim[currFrame];
         }
     }
