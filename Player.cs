@@ -43,6 +43,7 @@ namespace INFGame
         public bool blocking; //if player is blocking (no damage taken and less knockback, but can be broken to stun you)
         public int inAction; //if player is still doing something else, used to block animation canceling
         public int stunned; //updates player is frozen/stunned for, 0 = not stunned
+        public int attackTimer; //timer starts at button input, 0 when attack should be done
 
 
 
@@ -58,6 +59,14 @@ namespace INFGame
         public void Attack(Player defender)
         {
             float inAirAttackOffset;
+            if (!onFloor)
+            {
+                inAirAttackOffset = 3;
+            }
+            else
+            {
+                inAirAttackOffset = 0;
+            }
             if (stunned > 0)
             {
                 return;
@@ -65,6 +74,61 @@ namespace INFGame
             if (inAction > 0)
             {
                 inAction--;
+                attackTimer--;
+                if (attackTimer == 0)
+                {
+                    //setting the location of the hitboxes of the attack, one for each direction
+                    if (facing == 1)
+                    {
+                        currAttack.hitboxTL = new Vector3(position.X + currAttack.hitboxOffset.X, position.Y + currAttack.hitboxOffset.Y + currAttack.hitboxHeight - inAirAttackOffset, 0);
+                        currAttack.hitboxBR = new Vector3(position.X + currAttack.hitboxOffset.X + currAttack.hitboxWidth, position.Y + currAttack.hitboxOffset.Y - inAirAttackOffset, 0);
+                    }
+                    else
+                    {
+                        currAttack.hitboxTL = new Vector3(position.X - currAttack.hitboxOffset.X - currAttack.hitboxWidth, position.Y + currAttack.hitboxOffset.Y + currAttack.hitboxHeight - inAirAttackOffset, 0);
+                        currAttack.hitboxBR = new Vector3(position.X - currAttack.hitboxOffset.X, position.Y + currAttack.hitboxOffset.Y - inAirAttackOffset, 0);
+                    }
+
+
+                    //checking if the attack hits the enemy player
+                    if (currAttack.hitboxTL.X >= defender.hitboxBR.X || currAttack.hitboxBR.X <= defender.hitboxTL.X)
+                    {
+                        hit = false;
+                    }
+                    else if (currAttack.hitboxBR.Y >= defender.hitboxTL.Y || currAttack.hitboxTL.Y <= defender.hitboxBR.Y)
+                    {
+                        hit = false;
+                    }
+                    else
+                    {
+                        hit = true;
+
+                        if (!defender.blocking)
+                        {
+                            //if it hits apply knockback and damage, unblocked version
+                            defender.speedX = facing * currAttack.knockbackX;
+                            defender.speedY = currAttack.knockbackY;
+                            defender.health = defender.health - currAttack.damage;
+                        }
+                        else
+                        {
+                            if (currAttack.guardBreak)
+                            {
+                                defender.stunned = 60;
+                                defender.health = defender.health - currAttack.damage;
+                                defender.speedX = facing * currAttack.knockbackX;
+                                defender.speedY = currAttack.knockbackY;
+                            }
+                            else
+                            {
+                                //if it hits apply knockback and damage, blocked version
+                                defender.speedX = 0.6f * facing * currAttack.knockbackX;
+                                defender.speedY = 0.6f * currAttack.knockbackY;
+                            }
+                        }
+                    }
+                }
+                model = animations.SetCurrAnim(2, currAttackFrameRate); //punch animation
                 return;
             }
             //checking what control scheme to use and then checking 
@@ -76,18 +140,18 @@ namespace INFGame
                     if (gamePadState.Buttons.X != oldGamePadState.Buttons.X && gamePadState.Buttons.X == ButtonState.Pressed) //only allowing an attack if the correct button is pressed and it was not pressed the previous loop
                     {
                         currAttack = attacks[0];
-                        currAttackFrameRate = 5;
+                        currAttackFrameRate = 2;
                     }
                     else if (gamePadState.Buttons.Y != oldGamePadState.Buttons.Y && gamePadState.Buttons.Y == ButtonState.Pressed)
                     {
                         currAttack = attacks[1];
-                        currAttackFrameRate = 10;
+                        currAttackFrameRate = 5;
 
                     }
                     else if (gamePadState.Buttons.B != oldGamePadState.Buttons.B && gamePadState.Buttons.B == ButtonState.Pressed)
                     {
                         currAttack = attacks[2];
-                        currAttackFrameRate = 25;
+                        currAttackFrameRate = 10;
                     }
                     else
                     {
@@ -107,19 +171,19 @@ namespace INFGame
                     if (keybState.IsKeyDown(Keys.G) != oldKeybState.IsKeyDown(Keys.G) && keybState.IsKeyDown(Keys.G)) //only allowing an attack if the correct button is pressed and it was not pressed the previous loop
                     {
                         currAttack = attacks[0];
-                        currAttackFrameRate = 5;
+                        currAttackFrameRate = 2;
 
                     }
                     else if (keybState.IsKeyDown(Keys.H) != oldKeybState.IsKeyDown(Keys.H) && keybState.IsKeyDown(Keys.H))
                     {
                         currAttack = attacks[1];
-                        currAttackFrameRate = 10;
+                        currAttackFrameRate = 5;
 
                     }
                     else if (keybState.IsKeyDown(Keys.J) != oldKeybState.IsKeyDown(Keys.J) && keybState.IsKeyDown(Keys.J))
                     {
                         currAttack = attacks[2];
-                        currAttackFrameRate = 25;
+                        currAttackFrameRate = 10;
 
                     }
                     else
@@ -140,18 +204,18 @@ namespace INFGame
                     if (keybState.IsKeyDown(Keys.NumPad1) != oldKeybState.IsKeyDown(Keys.NumPad1) && keybState.IsKeyDown(Keys.NumPad1))
                     {
                         currAttack = attacks[0];
-                        currAttackFrameRate = 5;
+                        currAttackFrameRate = 2;
 
                     }
                     else if (keybState.IsKeyDown(Keys.NumPad2) != oldKeybState.IsKeyDown(Keys.NumPad2) && keybState.IsKeyDown(Keys.NumPad2))
                     {
                         currAttack = attacks[1];
-                        currAttackFrameRate = 10;
+                        currAttackFrameRate = 5;
                     }
                     else if (keybState.IsKeyDown(Keys.NumPad3) != oldKeybState.IsKeyDown(Keys.NumPad3) && keybState.IsKeyDown(Keys.NumPad3))
                     {
                         currAttack = attacks[2];
-                        currAttackFrameRate = 25;
+                        currAttackFrameRate = 10;
 
                     }
                     else
@@ -164,61 +228,12 @@ namespace INFGame
                     return;
                 }
             }
-            inAction = 8 * (int) currAttackFrameRate;
-            //animations.SetCurrAnim(2, currAttackFrameRate); //punch animation
-            if (!onFloor)
-            {
-                inAirAttackOffset = 3;
-            } else
-            {
-                inAirAttackOffset = 0;
-            }
-            //setting the location of the hitboxes of the attack, one for each direction
-            if (facing == 1)
-            {
-                currAttack.hitboxTL = new Vector3(position.X + currAttack.hitboxOffset.X, position.Y + currAttack.hitboxOffset.Y + currAttack.hitboxHeight - inAirAttackOffset, 0);
-                currAttack.hitboxBR = new Vector3(position.X + currAttack.hitboxOffset.X + currAttack.hitboxWidth, position.Y + currAttack.hitboxOffset.Y - inAirAttackOffset, 0);
-            } else
-            {
-                currAttack.hitboxTL = new Vector3(position.X - currAttack.hitboxOffset.X - currAttack.hitboxWidth, position.Y + currAttack.hitboxOffset.Y + currAttack.hitboxHeight - inAirAttackOffset, 0);
-                currAttack.hitboxBR = new Vector3(position.X - currAttack.hitboxOffset.X, position.Y + currAttack.hitboxOffset.Y - inAirAttackOffset, 0);
-            }
+            inAction = 6 * (int) currAttackFrameRate;
+            attackTimer = 5 * (int) currAttackFrameRate;
+            model = animations.SetCurrAnim(2, currAttackFrameRate); //punch animation
 
 
-            //checking if the attack hits the enemy player
-            if (currAttack.hitboxTL.X >= defender.hitboxBR.X || currAttack.hitboxBR.X <= defender.hitboxTL.X)
-            {
-                hit = false;
-            } else if (currAttack.hitboxBR.Y >= defender.hitboxTL.Y || currAttack.hitboxTL.Y <= defender.hitboxBR.Y)
-            {
-                hit = false;
-            } else
-            {
-                hit = true;
 
-                if (!defender.blocking)
-                {
-                    //if it hits apply knockback and damage, unblocked version
-                    defender.speedX = facing * currAttack.knockbackX;
-                    defender.speedY = currAttack.knockbackY;
-                    defender.health = defender.health - currAttack.damage;
-                } else
-                {
-                    if (currAttack.guardBreak)
-                    {
-                        defender.stunned = 60;
-                        defender.health = defender.health - currAttack.damage;
-                        defender.speedX = facing * currAttack.knockbackX;
-                        defender.speedY = currAttack.knockbackY;
-                    }
-                    else
-                    {
-                        //if it hits apply knockback and damage, blocked version
-                        defender.speedX = 0.6f * facing * currAttack.knockbackX;
-                        defender.speedY = 0.6f * currAttack.knockbackY;
-                    }
-                }
-            }
             speedX = facing * currAttack.attackermoveX;
             speedY = currAttack.attackermoveY;
 
@@ -316,10 +331,16 @@ namespace INFGame
             {
                 if (blocking)
                 {
+                    model = animations.SetCurrAnim(4, 15); //blocking animation
+
                     //animations.SetCurrAnim(3. 10); //blocking walk animation
-                } else
+                }
+                else
                 {
-                    model = animations.SetCurrAnim(1, 6); //walk animation
+                    if (inAction <= 0)
+                    {
+                        model = animations.SetCurrAnim(1, 6); //walk animation
+                    }
                 }
                 speedX = speedX + accelMultiplier * blockSlow * gamePadX;
             }

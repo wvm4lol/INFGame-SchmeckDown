@@ -121,10 +121,10 @@ namespace INFGame
                 {
                     player.animations.walk[i] = Content.Load<Model>("walkAnim" + i.ToString());
                 }
-                //for (int i = 0; i <= 7; i++)
-                //{
-                //    player.animations.punch[i] = Content.Load<Model>("punchAnim" + i.ToString());
-                //}
+                for (int i = 0; i <= 5; i++)
+                {
+                    player.animations.punch[i] = Content.Load<Model>("punchAnim" + i.ToString());
+                }
                 //for (int i = 0; i <= 7; i++)
                 //{
                 //    player.animations.blockingWalk[i] = Content.Load<Model>("blockingWalkAnim" + i.ToString());
@@ -218,6 +218,7 @@ namespace INFGame
 
                 //drawing values for development 
                 spriteBatch.Begin();
+                spriteBatch.DrawString(font, player1.stunned.ToString(), new Vector2(100, 500), Color.Black);
                 spriteBatch.DrawString(gameOverSubFont, "Health: " + player1.health.ToString() + "%", new Vector2(0, 100), Color.Black);
                 spriteBatch.DrawString(gameOverSubFont, "Health: " + player2.health.ToString() + "%", new Vector2(1650, 100), Color.Black);
 

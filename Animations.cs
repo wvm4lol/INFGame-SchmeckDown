@@ -11,7 +11,7 @@ namespace INFGame
     {
         public Model[] idle = new Model[2]; //animations as lists of models
         public Model[] walk = new Model[8];
-        public Model[] punch;
+        public Model[] punch = new Model[6];
         public Model[] blockingWalk;
         public Model[] blocking = new Model[3];
         public Model[] stunned = new Model[3];
