@@ -8,7 +8,9 @@
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <ApplicationIcon>Icon.ico</ApplicationIcon>
+    <ApplicationIcon>Untitled_9.ico</ApplicationIcon>
+    <RootNamespace>SchmeckDown</RootNamespace>
+    <AssemblyName>SchmeckDown</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
     <TrimmerRootAssembly Include="Microsoft.Xna.Framework.Content.ContentTypeReader" Visible="false" />

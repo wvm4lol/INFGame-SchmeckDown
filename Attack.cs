@@ -49,7 +49,7 @@ namespace INFGame
         
         public void GuardBreak()
         {
-            damage = 25;
+            damage = 20;
             knockbackX = 3;
             knockbackY = 0.3f;
             attackermoveX = 0.6f;

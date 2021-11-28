@@ -49,13 +49,14 @@ namespace INFGame
         {
             
             base.Initialize();
+            Window.Title = ("SchmeckDown");
             spriteBatch = new SpriteBatch(GraphicsDevice);
             //assigning default playere positions
             player1.position = new Vector3(-5, 0, 0);
             player2.position = new Vector3(5, 0, 0);
             //creating matrices for rendering
             cameraPos = new Vector3(0, 5, 20);
-            view = Matrix.CreateLookAt(new Vector3(0, 5, 20), new Vector3(0, 5, 0), Vector3.UnitY);
+            view = Matrix.CreateLookAt(new Vector3(0, 8, 20), new Vector3(0, 8, 0), Vector3.UnitY);
             projection = Matrix.CreateOrthographic(40, 22.5f, 0.1f, 100);
             //assigning controllers to players and getting first state for checking connection
             player1.gamePadState = GamePad.GetState(PlayerIndex.One);
@@ -107,7 +108,7 @@ namespace INFGame
             MediaPlayer.Volume = 0.05f;
             //loading stage
             stage = Content.Load<Model>("StageCube");
-            stageMatrix = Matrix.CreateScale(new Vector3(20, 1, 4)) * Matrix.CreateTranslation(new Vector3(0, -1, 0));
+            stageMatrix = Matrix.CreateScale(new Vector3(20, 20, 4)) * Matrix.CreateTranslation(new Vector3(0, -20, 0));
 
             
             void LoadPlayerAnimations(Player player)
@@ -167,6 +168,7 @@ namespace INFGame
                 //all player updates, will probably turn this into method
                 player1.GetControllerState();
                 player2.GetControllerState();
+                CheckPlayerOrientation(player1, player2);
                 player1.PlayerMoveY();
                 player2.PlayerMoveY();
                 player1.PlayerMoveX();
@@ -181,8 +183,8 @@ namespace INFGame
 
 
             //translating player position to matrix for rendering
-            player1.matrix = Matrix.CreateRotationX(MathHelper.ToRadians(90)) * Matrix.CreateRotationY(MathHelper.ToRadians(-90)) * Matrix.CreateScale(new Vector3(0.4f, -0.4f, 0.4f)) * Matrix.CreateTranslation(player1.position);
-            player2.matrix = Matrix.CreateRotationX(MathHelper.ToRadians(90)) * Matrix.CreateRotationY(MathHelper.ToRadians(-90)) * Matrix.CreateScale(new Vector3(-0.4f, -0.4f, 0.4f)) * Matrix.CreateTranslation(player2.position);
+            player1.matrix = Matrix.CreateRotationX(MathHelper.ToRadians(90)) * Matrix.CreateRotationY(MathHelper.ToRadians(-90)) * Matrix.CreateScale(new Vector3(player1.facing * 0.4f, -0.4f, 0.4f)) * Matrix.CreateTranslation(player1.position);
+            player2.matrix = Matrix.CreateRotationX(MathHelper.ToRadians(90)) * Matrix.CreateRotationY(MathHelper.ToRadians(-90)) * Matrix.CreateScale(new Vector3(player2.facing * 0.4f, -0.4f, 0.4f)) * Matrix.CreateTranslation(player2.position);
 
             base.Update(gameTime);
         }
@@ -192,13 +194,14 @@ namespace INFGame
         {
             if (player1.health <= 0 || player2.health <= 0)
             {
-                GraphicsDevice.Clear(Color.White);
                 spriteBatch.Begin();
                 if (player1.health <= 0)
                 {
+                    GraphicsDevice.Clear(Color.Blue);
                     spriteBatch.DrawString(gameOverFont, "Player 2 Wins", new Vector2(760, 540), Color.Black);
                 } else
                 {
+                    GraphicsDevice.Clear(Color.Red);
                     spriteBatch.DrawString(gameOverFont, "Player 1 Wins", new Vector2(760, 540), Color.Black);
 
                 }
@@ -211,9 +214,9 @@ namespace INFGame
                 //rendering background as specific shade of blue
                 GraphicsDevice.Clear(Color.CornflowerBlue);
                 //rendering using method
-                DrawModel(stage, stageMatrix, view, projection);
-                DrawModel(player1.model, player1.matrix, view, projection);
-                DrawModel(player2.model, player2.matrix, view, projection);
+                DrawModel(stage, stageMatrix, view, projection, new Vector3(0, 0, 0));
+                DrawModel(player1.model, player1.matrix, view, projection, new Vector3(255, 0, 0));
+                DrawModel(player2.model, player2.matrix, view, projection, new Vector3(0, 0, 255));
 
 
                 //drawing values for development 
@@ -229,10 +232,21 @@ namespace INFGame
 
             base.Draw(gameTime);
         }
-
+        private void CheckPlayerOrientation(Player player1, Player player2)
+        {
+            if (player1.position.X > player2.position.X)
+            {
+                player1.facing = -1;
+                player2.facing = 1;
+            } else
+            {
+                player1.facing = 1;
+                player2.facing = -1;
+            }
+        }
 
         //method to render a specific model
-        private void DrawModel(Model model, Matrix world, Matrix view, Matrix projection)
+        private void DrawModel(Model model, Matrix world, Matrix view, Matrix projection, Vector3 color)
         {
             foreach (ModelMesh mesh in model.Meshes)
             {
@@ -241,6 +255,7 @@ namespace INFGame
                     effect.World = world;
                     effect.View = view;
                     effect.Projection = projection;
+                    effect.EmissiveColor = color;
                     effect.EnableDefaultLighting();
                 }
 

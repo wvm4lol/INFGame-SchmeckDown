@@ -246,7 +246,6 @@ namespace INFGame
         //get the current state of the players controller
         public void GetControllerState()
         {
-
             if (contrlScheme == 0)
             {
                 //updating controller state, previous controller state and assigning left thumbstick variables for ease of use
