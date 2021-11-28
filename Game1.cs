@@ -218,7 +218,6 @@ namespace INFGame
 
                 //drawing values for development 
                 spriteBatch.Begin();
-                spriteBatch.DrawString(font, player1.stunned.ToString(), new Vector2(100, 500), Color.Black);
                 spriteBatch.DrawString(gameOverSubFont, "Health: " + player1.health.ToString() + "%", new Vector2(0, 100), Color.Black);
                 spriteBatch.DrawString(gameOverSubFont, "Health: " + player2.health.ToString() + "%", new Vector2(1650, 100), Color.Black);
 
